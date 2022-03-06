@@ -1,0 +1,167 @@
+```{r}
+install.packages("readr")
+```
+
+
+
+
+```{r}
+library(dplyr)
+library(readr)
+library(plyr)
+```
+
+
+
+
+
+
+```{r}
+mydir = "C:/Users/Cole/Documents/RStudio-Testing/Assignment 2/specdata"
+myfiles= list.files(path = mydir, pattern = "*.csv", full.names = TRUE)
+```
+
+```{r}
+dat_csv = ldply(myfiles, read_csv)
+```
+
+```{r}
+pollutantmean <- function(directory, pollutant, id = 1:332)
+{
+  files_full <- list.files(directory, full.names = TRUE) 
+  dat <- data.frame()
+  for (i in id) 
+   {
+    
+       dat <- rbind(dat, read.csv(files_full[i]))
+       
+   }
+    mean_data <- mean(dat[, pollutant], na.rm = TRUE)
+    return(mean_data)
+}
+```
+
+```{r}
+pollutantmean("specdata", "sulfate", 1:10)
+pollutantmean("specdata", "nitrate", 70:72)
+pollutantmean("specdata", "nitrate", 23)
+
+```
+```{r}
+complete <- function(directory, id = 1:332)
+{
+ files_full <- list.files(directory, full.names= TRUE)
+ dat <- data.frame()
+ for (i in id)
+ {
+   temp <- read.csv(files_full[i])
+   
+   nobs <-sum(complete.cases(temp))
+  
+   dat <-rbind(dat, data.frame(i, nobs))
+   
+}
+  colnames(dat) <- c("id", "nobs")
+  return(dat)
+}
+```  
+
+```{r}
+complete("specdata", 1)
+complete("specdata", c(2, 4, 8, 10, 12))
+complete("specdata", 30:25)
+complete("specdata", 3)
+```
+```{r}
+corr <- function(directory, threshold = 0)
+{
+  files_full <- list.files(directory, full.names= TRUE)
+  dat <- vector(mode = "numeric", length = 0)
+  for(i in 1:length(files_full))
+  {
+       tmp <- read.csv(files_full[i])
+       csum <- sum((!is.na(tmp$sulfate)) & (!is.na(tmp$nitrate)))
+      if (csum > threshold)
+      {
+         sul <- tmp[which(!is.na(tmp$sulfate)), ]
+         nit <- sul[which(!is.na(sul$nitrate)), ]
+         dat <- c(dat, cor(nit$sulfate, nit$nitrate))
+      }
+  }
+   
+    dat
+}
+```
+
+```{r}
+cr <- corr("specdata", 150)
+head(cr)
+summary(cr)
+```
+```{r}
+cr <- corr("specdata", 400)
+head(cr)
+summary(cr)
+```  
+```{r}
+cr <- corr("specdata", 5000)
+summary(cr)
+length(cr)
+```
+```{r}
+cr <- corr("specdata")
+summary(cr)
+length(cr)
+```
+```{r}
+pollutantmean("specdata", "sulfate", 1:10)
+pollutantmean("specdata", "nitrate", 70:72)
+pollutantmean("specdata", "sulfate", 34)
+pollutantmean("specdata", "nitrate")
+
+
+
+
+```
+```{r}
+cc <- complete("specdata", c(6, 10, 20, 34, 100, 200, 310))
+print(cc$nobs)
+```
+```{r}
+cc <- complete("specdata", 54)
+print(cc$nobs)
+```
+
+```{r}
+RNGversion("3.5.1")  
+set.seed(42)
+cc <- complete("specdata", 332:1)
+use <- sample(332, 10)
+print(cc[use, "nobs"])
+```
+```{r}
+cr <- corr("specdata")                
+cr <- sort(cr)   
+RNGversion("3.5.1")
+set.seed(868)                
+out <- round(cr[sample(length(cr), 5)], 4)
+print(out)
+```
+
+```{r}
+cr <- corr("specdata", 129)                
+cr <- sort(cr)                
+n <- length(cr)    
+RNGversion("3.5.1")
+set.seed(197)                
+out <- c(n, round(cr[sample(n, 5)], 4))
+print(out)
+```
+
+```{r}
+cr <- corr("specdata", 2000)                
+n <- length(cr)                
+cr <- corr("specdata", 1000)                
+cr <- sort(cr)
+print(c(n, round(cr, 4)))
+```
